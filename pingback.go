@@ -19,11 +19,13 @@ var ipsWhitelist = []string{
 }
 
 // https://docs.paymentwall.com/reference/pingback-home
-func NewPingback(values url.Values, ip string, apiType APIType, secretKey string) *Pingback {
+func NewPingback(
+	values url.Values,
+	ip string, apiType APIType, secretKey string) *Pingback {
 	p := Pingback{
 		m:           make(map[string]string, len(values)),
 		keys:        make([]string, 0, len(values)),
-		signVersion: SignVersion2,
+		signVersion: DefaultSignVersion,
 		isTest:      false,
 		ip:          ip,
 		apiType:     apiType,
@@ -93,9 +95,9 @@ func (p *Pingback) Validate(skipIPCheck bool) bool {
 func (p *Pingback) IsParametersValid() bool {
 	var requiredParams []string
 	if p.apiType == API_VC {
-		requiredParams = []string{"uid", "type", "ref", "sign", "sign_version", "currency"}
-	} else {
-		requiredParams = []string{"uid", "type", "ref", "sign", "sign_version", "goodsid"}
+		requiredParams = []string{"uid", "type", "ref", "sig", "sign_version", "currency"}
+	} else if p.apiType == API_GOODS {
+		requiredParams = []string{"uid", "type", "ref", "sig", "sign_version", "goodsid"}
 	}
 
 	for _, k := range requiredParams {
@@ -118,20 +120,65 @@ func (p *Pingback) IsIPValid() bool {
 
 func (p *Pingback) IsSignatureValid() bool {
 	var h hash.Hash
-	if p.signVersion == SignVersion2 {
-		h = md5.New()
-	} else {
+	if p.signVersion == SignVersion3 {
 		h = sha256.New()
+	} else {
+		h = md5.New()
 	}
 
 	sort.Strings(p.keys)
 	for _, k := range p.keys {
-		if k == "sign" {
+		if k == "sig" {
 			continue
 		}
 		h.Write([]byte(fmt.Sprintf(`%s=%s`, k, p.m[k])))
 	}
 	h.Write([]byte(p.secretKey))
 
-	return string(h.Sum(nil)) == p.m["sign"]
+	return string(h.Sum(nil)) == p.m["sig"]
+}
+
+func (p *Pingback) Get(key string) string {
+	return p.m[key]
+}
+
+func (p *Pingback) GetType() string {
+	return p.Get("type")
+}
+
+func (p *Pingback) GetUID() string {
+	return p.Get("uid")
+}
+
+func (p *Pingback) GetVCAmount() string {
+	return p.Get("currency")
+}
+
+func (p *Pingback) GetProductID() string {
+	return p.Get("goodsid")
+}
+
+func (p *Pingback) GetProductPeriod() (length string, period string) {
+	return p.Get("slength"), p.Get("speriod")
+}
+
+func (p *Pingback) GetReferenceID() string {
+	return p.Get("ref")
+}
+
+func (p *Pingback) IsDeliverable() bool {
+	type_ := p.GetType()
+	return type_ == PingbackTypeRegular ||
+		type_ == PingbackTypeGoodwill ||
+		type_ == PingbackTypeRiskReviewedAccepted
+}
+
+func (p *Pingback) IsCancelable() bool {
+	type_ := p.GetType()
+	return type_ == PingbackTypeNegative ||
+		type_ == PingbackTypeRiskReviewedDeclined
+}
+
+func (p *Pingback) IsUnderReview() bool {
+	return p.GetType() == PingbackTypeRiskUnderReview
 }

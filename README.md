@@ -3,6 +3,9 @@ Unofficial Paymentwall Go Library
 
 ### TODO
 - [ ]Pingback Processing
+	* [x] Digital Goods
+	* [x] Virtual Currency
+	* [ ] Cart
 - [ ]Widget Call
 - [ ]Coverage test
 
