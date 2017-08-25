@@ -21,7 +21,7 @@ var ipsWhitelist = []string{
 // https://docs.paymentwall.com/reference/pingback-home
 func NewPingback(
 	values url.Values,
-	ip string, apiType APIType, secretKey string) *Pingback {
+	ip string, apiType ApiType, secretKey string) *Pingback {
 	p := Pingback{
 		m:           make(map[string]string, len(values)),
 		keys:        make([]string, 0, len(values)),
@@ -53,7 +53,7 @@ type Pingback struct {
 	isTest      bool
 
 	ip        string
-	apiType   APIType
+	apiType   ApiType
 	secretKey string
 
 	errors []error
@@ -142,10 +142,11 @@ func (p *Pingback) Get(key string) string {
 	return p.m[key]
 }
 
-func (p *Pingback) GetType() string {
-	return p.Get("type")
+func (p *Pingback) GetType() PingbackType {
+	return PingbackType(p.Get("type"))
 }
 
+// Unique identifier of the user. The value of parameter “uid” from Widget call.
 func (p *Pingback) GetUID() string {
 	return p.Get("uid")
 }

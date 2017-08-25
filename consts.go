@@ -1,29 +1,29 @@
 package paymentwall
 
-type APIType uint
+type ApiType uint
 
 const (
-	API_VC    APIType = 1 // Virtual Currency API
-	API_GOODS APIType = 2 // Digital Goods API
-	API_CART  APIType = 3 // Cart API
+	API_VC    ApiType = 1 // Virtual Currency API
+	API_GOODS ApiType = 2 // Digital Goods API
+	API_CART  ApiType = 3 // Cart API
 )
 
 type PingbackType string
 
 const (
-	PingbackTypeRegular  = "0" // When product is purchased. Please check whether the reference ID is unique and deliver the goods.
-	PingbackTypeGoodwill = "1"
-	PingbackTypeNegative = "2" // When user issued chargeback or refund. Please take the delivered goods out from user’s account.
+	PingbackTypeRegular  PingbackType = "0" // When product is purchased. Please check whether the reference ID is unique and deliver the goods.
+	PingbackTypeGoodwill PingbackType = "1"
+	PingbackTypeNegative PingbackType = "2" // When user issued chargeback or refund. Please take the delivered goods out from user’s account.
 
-	PingbackTypeRiskUnderReview      = "200" // Pending status. In case a payment is currently under risk review by Paymentwall. Please do not deliver the goods yet.
-	PingbackTypeRiskReviewedAccepted = "201" // Review is done and payment is accepted. Please check whether the reference ID is unique and deliver the goods.
-	PingbackTypeRiskReviewedDeclined = "202" // Review is done and payment is declined. Please do not deliver the goods since the user will get his money back.
+	PingbackTypeRiskUnderReview      PingbackType = "200" // Pending status. In case a payment is currently under risk review by Paymentwall. Please do not deliver the goods yet.
+	PingbackTypeRiskReviewedAccepted PingbackType = "201" // Review is done and payment is accepted. Please check whether the reference ID is unique and deliver the goods.
+	PingbackTypeRiskReviewedDeclined PingbackType = "202" // Review is done and payment is declined. Please do not deliver the goods since the user will get his money back.
 
-	PingbackTypeRiskAuthorizationVoided = "203" // Authorization has been voided due to no capture request received on time.
+	PingbackTypeRiskAuthorizationVoided PingbackType = "203" // Authorization has been voided due to no capture request received on time.
 
-	PingbackTypeSubscriptionCancelled     = "12" // When user cancels subscription plan. Sent immediately upon cancellation, e.g. in the middle of current premium month.
-	PingbackTypeSubscriptionExpired       = "13" // When subscription expired.
-	PingbackTypeSubscriptionPaymentFailed = "14" // When renewal subscription payment failed. Subscription stopped due to failing payments e.g. due to insufficient funds.
+	PingbackTypeSubscriptionCancelled     PingbackType = "12" // When user cancels subscription plan. Sent immediately upon cancellation, e.g. in the middle of current premium month.
+	PingbackTypeSubscriptionExpired       PingbackType = "13" // When subscription expired.
+	PingbackTypeSubscriptionPaymentFailed PingbackType = "14" // When renewal subscription payment failed. Subscription stopped due to failing payments e.g. due to insufficient funds.
 )
 
 const (
