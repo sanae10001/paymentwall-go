@@ -3,6 +3,7 @@ package paymentwall
 import (
 	"crypto/md5"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -127,15 +128,16 @@ func (p *Pingback) IsSignatureValid() bool {
 	}
 
 	sort.Strings(p.keys)
+	baseString := ""
 	for _, k := range p.keys {
 		if k == "sig" {
 			continue
 		}
-		h.Write([]byte(fmt.Sprintf(`%s=%s`, k, p.m[k])))
+		baseString += fmt.Sprintf(`%s=%s`, k, p.m[k])
 	}
-	h.Write([]byte(p.secretKey))
-
-	return string(h.Sum(nil)) == p.m["sig"]
+	baseString += p.secretKey
+	h.Write([]byte(baseString))
+	return hex.EncodeToString(h.Sum(nil)) == p.m["sig"]
 }
 
 func (p *Pingback) Get(key string) string {

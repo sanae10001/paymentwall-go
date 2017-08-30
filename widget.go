@@ -3,6 +3,7 @@ package paymentwall
 import (
 	"crypto/md5"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -112,6 +113,16 @@ func (w *Widget) getDefaultWidgetSignature() string {
 	}
 }
 
+func (w *Widget) buildController() string {
+	if w.apiType == API_VC {
+		return VC_CONTROLLER
+	} else if w.apiType == API_GOODS {
+		return GOODS_CONTROLLER
+	} else {
+		return CART_CONTROLLER
+	}
+}
+
 func (w *Widget) mergeSignVersion() string {
 	signVersion := w.getDefaultWidgetSignature()
 	if s, ok := w.extraParams["sign_version"]; ok {
@@ -120,13 +131,9 @@ func (w *Widget) mergeSignVersion() string {
 	return signVersion
 }
 
-func (w *Widget) buildController() string {
-	if w.apiType == API_VC {
-		return VC_CONTROLLER
-	} else if w.apiType == API_GOODS {
-		return GOODS_CONTROLLER
-	} else {
-		return CART_CONTROLLER
+func (w *Widget) mergeExtraParams(params url.Values) {
+	for k, v := range w.extraParams {
+		params.Set(k, v)
 	}
 }
 
@@ -164,10 +171,15 @@ func (w *Widget) getParams() url.Values {
 			}
 		}
 	}
+
+	w.mergeExtraParams(params)
+
 	if !w.skipSignature {
 		signVersion := w.mergeSignVersion()
-		params.Set("sign_version", string(signVersion))
+		params.Set("sign_version", signVersion)
 		params.Set("sign", w.calculateSignature(params, signVersion))
+	} else {
+		params.Del("sign_version")
 	}
 	return params
 }
@@ -186,9 +198,11 @@ func (w *Widget) calculateSignature(params url.Values, signVersion string) strin
 	}
 
 	sort.Strings(keys)
+	baseString := ""
 	for _, k := range keys {
-		h.Write([]byte(fmt.Sprintf("%s=%s", k, params.Get(k))))
+		baseString += fmt.Sprintf("%s=%s", k, params.Get(k))
 	}
-	h.Write([]byte(w.secretKey))
-	return string(h.Sum(nil))
+	baseString += w.secretKey
+	h.Write([]byte(baseString))
+	return hex.EncodeToString(h.Sum(nil))
 }
