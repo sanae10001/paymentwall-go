@@ -27,7 +27,7 @@ func NewPingback(
 		m:           make(map[string]string, len(values)),
 		keys:        make([]string, 0, len(values)),
 		signVersion: DefaultSignVersion,
-		isTest:      false,
+		IsTest:      false,
 		ip:          ip,
 		apiType:     apiType,
 		secretKey:   secretKey,
@@ -38,10 +38,9 @@ func NewPingback(
 		if k == "sign_version" {
 			p.signVersion = v
 		} else if k == "is_test" && v == "1" {
-			p.isTest = true
-		} else {
-			p.set(k, v)
+			p.IsTest = true
 		}
+		p.set(k, v)
 	}
 	return &p
 }
@@ -51,7 +50,7 @@ type Pingback struct {
 	m    map[string]string
 
 	signVersion string
-	isTest      bool
+	IsTest      bool
 
 	ip        string
 	apiType   ApiType
