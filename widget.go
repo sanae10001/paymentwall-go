@@ -9,7 +9,9 @@ import (
 	"hash"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -21,19 +23,22 @@ const (
 )
 
 var (
-	ErrorOnlyOneProductAllowed = errors.New("Only one product is allowed when ApiType is API_GOODS")
+	ErrorOnlyOneProductAllowed = errors.New("only one product is allowed when ApiType is API_GOODS")
 )
 
 func NewWidget(
-	appKey string, apiType ApiType,
-	secretKey, uid, widgetCode string,
+	appKey, secretKey string,
+	apiType ApiType,
+	uid, widgetCode, email string,
 	skipSignature bool) *Widget {
 	w := &Widget{
 		appKey:        appKey,
 		secretKey:     secretKey,
 		apiType:       apiType,
-		code:          widgetCode,
 		uid:           uid,
+		code:          widgetCode,
+		email:         email,
+		ps:            "all",
 		skipSignature: skipSignature,
 	}
 	return w
@@ -43,9 +48,12 @@ type Widget struct {
 	appKey        string
 	secretKey     string
 	apiType       ApiType
-	code          string // widget code
 	skipSignature bool
-	uid           string
+
+	uid   string
+	code  string // widget code
+	email string
+	ps    string
 
 	products    []Product
 	extraParams map[string]string
@@ -65,6 +73,15 @@ func (w *Widget) AppendProduct(products ...Product) error {
 	}
 	w.products = append(w.products, products...)
 	return nil
+}
+
+func (w *Widget) SetPS(ps string) {
+	w.ps = ps
+}
+
+func (w *Widget) SetCallbackUrl(successUrl, failureUrl string) {
+	w.SetExtraParam("success_url", successUrl)
+	w.SetExtraParam("failure_url", failureUrl)
 }
 
 func (w *Widget) SetExtraParams(m map[string]string) {
@@ -140,8 +157,11 @@ func (w *Widget) mergeExtraParams(params url.Values) {
 func (w *Widget) getParams() url.Values {
 	params := url.Values{}
 	params.Set("key", w.appKey)
-	params.Set("widget", w.code)
 	params.Set("uid", w.uid)
+	params.Set("widget", w.code)
+	params.Set("email", w.email)
+	params.Set("timestamp", strconv.FormatInt(time.Now().Unix(), 10))
+	params.Set("ps", w.ps)
 
 	if len(w.products) > 0 {
 		if w.apiType == API_GOODS {
