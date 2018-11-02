@@ -1,23 +1,23 @@
 package paymentwall
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
+	"net"
 	"net/url"
 	"sort"
 )
 
-var ipsWhitelist = []string{
-	"174.36.92.186",
-	"174.36.96.66",
-	"174.36.92.187",
-	"174.36.92.192",
-	"174.37.14.28",
-}
+// The whitelisted start and end range of which Paymentwall callbacks are permissible to come from.
+const (
+	ipWhitelistStart = "216.127.71.0"   // Start
+	ipWhitelistEnd   = "216.127.71.255" // End
+)
 
 // https://docs.paymentwall.com/reference/pingback-home
 func NewPingback(
@@ -109,12 +109,24 @@ func (p *Pingback) IsParametersValid() bool {
 	return true
 }
 
+// IsIPValid checks to ensure the IP from which the pingback was received is within the allowed range of whitelisted
+// IPs provided by Paymentwall.
+// @see: https://docs.paymentwall.com/reference/pingback-new-ip-subnet
 func (p *Pingback) IsIPValid() bool {
-	for _, i := range ipsWhitelist {
-		if p.ip == i {
-			return true
-		}
+	whitelistStart := net.ParseIP(ipWhitelistStart)
+	whitelistEnd := net.ParseIP(ipWhitelistEnd)
+	reqIP := net.ParseIP(p.ip)
+
+	// Ensure IP is IPv4 only.
+	if reqIP.To4() == nil {
+		return false
 	}
+
+	// Check if IP is within range of whitelisted IPs.
+	if bytes.Compare(reqIP, whitelistStart) >= 0 && bytes.Compare(reqIP, whitelistEnd) <= 0 {
+		return true
+	}
+
 	return false
 }
 
