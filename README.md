@@ -2,12 +2,12 @@
 Unofficial Paymentwall Go Library
 
 ### TODO
-- [ ]Pingback Processing
+- [ ] Pingback Processing
 	* [x] Digital Goods
 	* [x] Virtual Currency
 	* [ ] Cart
-- [x]Widget Call
-- [ ]Coverage test
+- [x] Widget Call
+- [ ] Coverage test
 
 ### Reference
 - [Paymentwall](https://docs.paymentwall.com/)
